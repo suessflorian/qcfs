@@ -24,7 +24,7 @@ class ScaledNeuron(nn.Module):
             self.neuron(torch.ones_like(x)*0.5)
         x = self.neuron(x)
         self.t += 1
-        return x * self.scale
+        return x * self.scale # NOTE: this will not restrict the output here to SNN like {0, 1}.
     def reset(self):
         self.t = 0
         self.neuron.reset()
