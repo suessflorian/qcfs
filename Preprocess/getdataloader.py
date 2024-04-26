@@ -3,10 +3,10 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import torch
 import os
-from Preprocess.augment import Cutout, CIFAR10Policy
+from Preprocess.augment import Cutout
 
 # your own data dir
-DIR = {'CIFAR10': 'E:\datasets', 'CIFAR100': 'E:\datasets', 'ImageNet': 'YOUR_IMAGENET_DIR'}
+DIR = {'CIFAR10': './data', 'CIFAR100': './data', 'ImageNet': './data'}
 
 # def GetCifar10(batchsize, attack=False):
 #     if attack:
@@ -35,7 +35,7 @@ DIR = {'CIFAR10': 'E:\datasets', 'CIFAR100': 'E:\datasets', 'ImageNet': 'YOUR_IM
 def GetCifar10(batchsize, attack=False):
     trans_t = transforms.Compose([transforms.RandomCrop(32, padding=4),
                                   transforms.RandomHorizontalFlip(),
-                                  CIFAR10Policy(),
+                                  # CIFAR10Policy(), # NOTE: trash
                                   transforms.ToTensor(),
                                   transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                                   Cutout(n_holes=1, length=16)
