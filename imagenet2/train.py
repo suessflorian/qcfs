@@ -1,10 +1,8 @@
 import torch.distributed as dist
-import torch.multiprocessing as mp
-import argparse
 from torch import nn
 import torch
-from Models import modelpool
-from Preprocess.getdataloader import GetImageNet
+from models import modelpool
+from preprocess.getdataloader import GetImageNet
 from funcs import train_ann, seed_all
 from utils import replace_activation_by_floor, replace_activation_by_neuron, replace_maxpool2d_by_avgpool2d
 import os

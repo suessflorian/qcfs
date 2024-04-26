@@ -2,7 +2,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import torch
 import os
-from Preprocess.augment import Cutout
+from preprocess.augment import Cutout
 
 DIR = {'CIFAR10': './data', 'CIFAR100': './data', 'ImageNet': './data'}
 

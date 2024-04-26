@@ -1,10 +1,10 @@
 import torch.multiprocessing as mp
 import argparse
-from Models import modelpool
-from Preprocess import datapool
+from models import modelpool
+from preprocess import datapool
 from funcs import *
 from utils import replace_activation_by_floor, replace_activation_by_neuron, replace_maxpool2d_by_avgpool2d
-from ImageNet.train import main_worker
+from imagenet.train import main_worker
 import torch.nn as nn
 
 if __name__ == "__main__":
