@@ -72,18 +72,16 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
 def eval_snn(test_dataloader, model, device, sim_len=8, rank=0):
     tot = torch.zeros(sim_len).to(device)
     length = 0
-    model = model.to(device)
     model.eval()
     # valuate
     with torch.no_grad():
         for idx, (img, label) in enumerate(tqdm(test_dataloader)):
+            reset_net(model)
+            img, label = img.to(device), label.to(device)
             spikes = 0
             length += len(label)
-            img = img.to(device)
-            label = label.to(device)
             for t in range(sim_len):
                 out = model(img)
                 spikes += out
                 tot[t] += (label==spikes.max(1)[1]).sum()
-            reset_net(model)
     return (tot/length)[sim_len-1]

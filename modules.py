@@ -2,6 +2,7 @@ from torch import nn
 import torch.nn.functional as F
 import numpy as np
 import torch
+import snntorch as snn
 from torch.autograd import Function
 from spikingjelly.clock_driven import neuron
 
@@ -18,16 +19,25 @@ class ScaledNeuron(nn.Module):
         self.scale = scale
         self.t = 0
         self.neuron = neuron.IFNode(v_reset=None)
+        self.neuron2 = snn.Leaky(beta=0) # TODO: swap over to LIF with beta=0 to ablate potential IF impl weirdness
+
+
     def forward(self, x):          
         x = x / self.scale
-        if self.t == 0:
-            self.neuron(torch.ones_like(x)*0.5)
-        x = self.neuron(x)
+        if self.t == 0: # TODO: try remove
+            self.neuron(torch.ones_like(x)*0.5) # NOTE: init state on first pass helps
+            # _, self.mem = self.neuron2(torch.ones_like(x)*0.5, self.mem)  # NOTE: init state on first pass helps
         self.t += 1
-        return x * self.scale # NOTE: this will not restrict the output here to SNN like {0, 1}.
-    def reset(self):
+        x = self.neuron(x)
+        # _, self.mem = self.neuron2(x, self.mem)
+
+        return x * self.scale # NOTE: will this cause output to become continous?
+
+
+    def reset(self): # WARNING: must call prior to using this neuron for tensor device coordination
         self.t = 0
         self.neuron.reset()
+        self.mem = self.neuron2.reset_mem()
 
 class GradFloor(Function):
     @staticmethod
