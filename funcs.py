@@ -13,20 +13,17 @@ def seed_all(seed=42):
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
 
 def eval_ann(test_dataloader, model, loss_fn, device, rank=0):
     epoch_loss = 0
-    tot = torch.tensor(0.).cuda(device)
+    tot = torch.tensor(0.).to(device)
     model.eval()
-    model.cuda(device)
+    model.to(device)
     length = 0
     with torch.no_grad():
         for img, label in test_dataloader:
-            img = img.cuda(device)
-            label = label.cuda(device)
+            img = img.to(device)
+            label = label.to(device)
             out = model(img)
             loss = loss_fn(out, label)
             epoch_loss += loss.item()
@@ -35,7 +32,7 @@ def eval_ann(test_dataloader, model, loss_fn, device, rank=0):
     return tot/length, epoch_loss/length
 
 def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn, lr=0.1, wd=5e-4, save=None, parallel=False, rank=0):
-    model.cuda(device)
+    model.to(device)
     para1, para2, para3 = regular_set(model)
     optimizer = torch.optim.SGD([
                                 {'params': para1, 'weight_decay': wd}, 
@@ -51,8 +48,8 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
         length = 0
         model.train()
         for img, label in train_dataloader:
-            img = img.cuda(device)
-            label = label.cuda(device)
+            img = img.to(device)
+            label = label.to(device)
             optimizer.zero_grad()
             out = model(img)
             loss = loss_fn(out, label)
@@ -60,6 +57,7 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
             optimizer.step()
             epoch_loss += loss.item()
             length += len(label)
+
         tmp_acc, val_loss = eval_ann(test_dataloader, model, loss_fn, device, rank)
         if parallel:
             dist.all_reduce(tmp_acc)
@@ -72,20 +70,20 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
     return best_acc, model
 
 def eval_snn(test_dataloader, model, device, sim_len=8, rank=0):
-    tot = torch.zeros(sim_len).cuda(device)
+    tot = torch.zeros(sim_len).to(device)
     length = 0
-    model = model.cuda(device)
+    model = model.to(device)
     model.eval()
     # valuate
     with torch.no_grad():
         for idx, (img, label) in enumerate(tqdm(test_dataloader)):
             spikes = 0
             length += len(label)
-            img = img.cuda()
-            label = label.cuda()
+            img = img.to(device)
+            label = label.to(device)
             for t in range(sim_len):
                 out = model(img)
                 spikes += out
                 tot[t] += (label==spikes.max(1)[1]).sum()
             reset_net(model)
-    return tot/length
+    return (tot/length)[sim_len-1]

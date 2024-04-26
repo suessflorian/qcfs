@@ -6,7 +6,6 @@ from funcs import *
 from utils import replace_activation_by_floor, replace_activation_by_neuron, replace_maxpool2d_by_avgpool2d
 from ImageNet.train import main_worker
 import torch.nn as nn
-import os
 
 if __name__ == "__main__":
 
@@ -19,12 +18,12 @@ if __name__ == "__main__":
     parser.add_argument('--wd', default=5e-4, type=float, help='Weight decay')
     parser.add_argument('--epochs', default=120, type=int, help='Training epochs') # better if set to 300 for CIFAR dataset
     parser.add_argument('--id', default=None, type=str, help='Model identifier')
-    parser.add_argument('--device', default='cuda', type=str, help='cuda or cpu')
+    parser.add_argument('--device', default='mps', type=str, help='mps or cpu')
     parser.add_argument('--l', default=16, type=int, help='L')
     parser.add_argument('--t', default=16, type=int, help='T')
     parser.add_argument('--mode', type=str, default='ann')
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--data', type=str, default='cifar100')
+    parser.add_argument('--data', type=str, default='cifar10')
     parser.add_argument('--model', type=str, default='vgg16')
     args = parser.parse_args()
     
