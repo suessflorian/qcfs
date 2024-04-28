@@ -1,10 +1,8 @@
 from torch import nn
 import torch.nn.functional as F
-import numpy as np
 import torch
 import snntorch as snn
 from torch.autograd import Function
-from spikingjelly.clock_driven import neuron
 
 class StraightThrough(nn.Module):
     def __init__(self, channel_num: int = 1):
@@ -18,26 +16,22 @@ class ScaledNeuron(nn.Module):
         super(ScaledNeuron, self).__init__()
         self.scale = scale
         self.t = 0
-        self.neuron = neuron.IFNode(v_reset=None)
-        self.neuron2 = snn.Leaky(beta=0) # TODO: swap over to LIF with beta=0 to ablate potential IF impl weirdness
+        self.neuron = snn.Leaky(beta=1, reset_delay=False)
 
 
     def forward(self, x):          
         x = x / self.scale
-        if self.t == 0: # TODO: try remove
-            self.neuron(torch.ones_like(x)*0.5) # NOTE: init state on first pass helps
-            # _, self.mem = self.neuron2(torch.ones_like(x)*0.5, self.mem)  # NOTE: init state on first pass helps
+        if self.t == 0:
+            _, self.mem = self.neuron(torch.ones_like(x)*0.5, self.mem)
         self.t += 1
-        x = self.neuron(x)
-        # _, self.mem = self.neuron2(x, self.mem)
+        x, self.mem = self.neuron(x, self.mem)
 
         return x * self.scale # NOTE: will this cause output to become continous?
 
 
     def reset(self): # WARNING: must call prior to using this neuron for tensor device coordination
         self.t = 0
-        self.neuron.reset()
-        self.mem = self.neuron2.reset_mem()
+        self.mem = self.neuron.reset_mem()
 
 class GradFloor(Function):
     @staticmethod
@@ -49,24 +43,6 @@ class GradFloor(Function):
         return grad_output
 
 myfloor = GradFloor.apply
-
-class ShiftNeuron(nn.Module):
-    def __init__(self, scale=1., alpha=1/50000):
-        super().__init__()
-        self.alpha = alpha
-        self.vt = 0.
-        self.scale = scale
-        self.neuron = neuron.IFNode(v_reset=None)
-    def forward(self, x):  
-        x = x / self.scale
-        x = self.neuron(x)
-        return x * self.scale
-    def reset(self):
-        if self.training:
-            self.vt = self.vt + self.neuron.v.reshape(-1).mean().item()*self.alpha
-        self.neuron.reset()
-        if self.training == False:
-            self.neuron.v = self.vt
 
 class MyFloor(nn.Module):
     def __init__(self, up=8., t=32):
