@@ -1,9 +1,7 @@
 import numpy as np
-from torch import nn
 import torch
 from tqdm import tqdm
 from utils import *
-from modules import LabelSmoothing
 import torch.distributed as dist
 import random
 import os
@@ -69,19 +67,22 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
         scheduler.step()
     return best_acc, model
 
-def eval_snn(test_dataloader, model, device, sim_len=8, rank=0):
-    tot = torch.zeros(sim_len).to(device)
-    length = 0
+def eval_snn(test_dataloader, model, device, sim_len=8):
+    quantity_evaluated = 0
+    total_correct = 0
+
     model.eval()
-    # valuate
     with torch.no_grad():
-        for idx, (img, label) in enumerate(tqdm(test_dataloader)):
+        for _, (img, label) in enumerate(tqdm(test_dataloader)):
             reset_net(model)
             img, label = img.to(device), label.to(device)
-            spikes = 0
-            length += len(label)
-            for t in range(sim_len):
-                out = model(img)
-                spikes += out
-                tot[t] += (label==spikes.max(1)[1]).sum()
-    return (tot/length)[sim_len-1]
+
+
+            spikes = torch.zeros((label.size(0), 10), device=device) # WARNING: assumes 10 classes
+            for _ in range(sim_len):
+                spikes = model(img)
+
+            _, predicted = spikes.max(1)
+            total_correct += (predicted == label).sum().item()
+            quantity_evaluated += len(label)
+    return total_correct / quantity_evaluated
