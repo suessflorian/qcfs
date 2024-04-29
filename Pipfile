@@ -8,6 +8,7 @@ torch = "*"
 torchvision = "*"
 numpy = "*"
 snntorch = "*"
+foolbox = "*"
 
 [dev-packages]
 

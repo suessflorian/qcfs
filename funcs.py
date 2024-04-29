@@ -20,7 +20,7 @@ def eval_ann(test_dataloader, model, loss_fn, device):
     model.to(device)
     length = 0
     with torch.no_grad():
-        for img, label in tqdm(test_dataloader, unit="batch"):
+        for img, label in tqdm(test_dataloader, unit="batch", desc="Evaluating"):
             img = img.to(device)
             label = label.to(device)
             out = model(img)
@@ -51,7 +51,6 @@ def eval_snn(test_dataloader, model, device, sim_len=8):
     return total_correct / quantity_evaluated
 
 def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn, lr=0.1, wd=5e-4, id=None):
-    model.to(device)
     para1, para2, para3 = regular_set(model)
     optimizer = torch.optim.SGD([
         {'params': para1, 'weight_decay': wd}, 
@@ -65,7 +64,7 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
         epoch_loss = 0
         length = 0
         model.train()
-        for img, label in tqdm(train_dataloader, desc='Epoch {}'.format(epoch, unit="batch")):
+        for img, label in tqdm(train_dataloader, desc='Epoch {}'.format(epoch, unit="batch"), unit="batch"):
             img, label = img.to(device), label.to(device)
 
             optimizer.zero_grad()
@@ -78,11 +77,12 @@ def train_ann(train_dataloader, test_dataloader, model, epochs, device, loss_fn,
             epoch_loss += loss.item()
             length += len(label)
 
-        tmp_acc, val_loss = eval_ann(test_dataloader, model, loss_fn, device)
-        print('Epoch {} -> Val_loss: {}, Acc: {}'.format(epoch, val_loss, tmp_acc), flush=True)
-        if id != None and tmp_acc >= best_acc:
-            checkpoint.save(model, id)
-        best_acc = max(tmp_acc, best_acc)
-        print('best_acc: ', best_acc)
+        if epoch % 5 == 0:
+            tmp_acc, val_loss = eval_ann(test_dataloader, model, loss_fn, device)
+            print(f'checkpoint loss: {val_loss}, test accuracy: {tmp_acc}', flush=True)
+            if id != None and tmp_acc >= best_acc:
+                print(f'improved, checkpoint save...')
+                checkpoint.save(model, id)
+            best_acc = max(tmp_acc, best_acc)
         scheduler.step()
     return best_acc, model
