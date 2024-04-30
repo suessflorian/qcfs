@@ -18,13 +18,14 @@ I managed to shoehorn a full model with name `resnet18-default` in the repo read
 
 ANN variant;
 ```
-pipenv run python main.py test --model resnet18 --id=resnet18-default --mode=ann
+pipenv run python main.py test --model resnet18-copy --id=resnet18-default --mode=ann
 ```
 
 But more importantly, the SNN variant;
 ```
-pipenv run python main.py test --model resnet18 --id=resnet18-default --mode=snn --t=16
+pipenv run python main.py test --model resnet18-copy --id=resnet18-default --mode=snn --t=16
 ```
 
-## Other notes;
-The VGG16 sits in the ~86% realm with default `l=16` and `t=16`.
+## Issues note;
+- Currently in process of migrating to referencing `torchvision` directly for model sourcing. Still keeping copied versions with postfix `-copy` for now until we get a chance to validate the migration works as expected.
+- Deepfool and fmn attacks are yet to work correctly on SNN variants.
