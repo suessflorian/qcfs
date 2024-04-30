@@ -35,10 +35,28 @@ def Cifar100(batchsize):
 
     transforms_test = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(mean=[n/255. for n in [129.3, 124.1, 112.4]], std=[n/255. for n in [68.2,  65.4,  70.4]]),
+        transforms.Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761]),
     ])
 
     train_dataset = datasets.CIFAR100("./data", train=True, transform=transforms_train, download=True)
     test_dataset = datasets.CIFAR100("./data", train=False, transform=transforms_test, download=True) 
+
+    return DataLoader(train_dataset, batch_size=batchsize, shuffle=True, drop_last=True), DataLoader(test_dataset, batch_size=batchsize, drop_last=True)
+
+def FashionMNIST(batchsize):
+    transforms_train = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),  # Normalizing with mean and std dev for grayscale images
+    ])
+
+    transforms_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),  # Same normalization for consistency
+    ])
+
+    train_dataset = datasets.FashionMNIST("./data", train=True, transform=transforms_train, download=True)
+    test_dataset = datasets.FashionMNIST("./data", train=False, transform=transforms_test, download=True) 
 
     return DataLoader(train_dataset, batch_size=batchsize, shuffle=True, drop_last=True), DataLoader(test_dataset, batch_size=batchsize, drop_last=True)

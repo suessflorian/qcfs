@@ -18,6 +18,9 @@ def modelpool(arch, dataset):
         return models.resnet34(num_classes=num_classes)
     elif arch.lower() == 'resnet101':
         return models.resnet101(num_classes=num_classes)
+    elif arch.lower() == 'resnet18-copy' and dataset=='fashion':
+        print("using resnet18single for fashion dataset")
+        return resnet18single(num_classes=num_classes)
     elif arch.lower() == 'resnet18-copy': # TODO: keeping this around until we validate the torchvision models are same
         return resnet18(num_classes=num_classes)
     else:

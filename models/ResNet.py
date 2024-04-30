@@ -157,7 +157,14 @@ def resnet18(num_classes=10, **kargs):
     """ return a ResNet 18 object
     """
     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
-    
+
+def resnet18single(num_classes=10, **kargs):
+    """ return a ResNet 18 object
+    """
+    resnet = ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
+    resnet.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    return resnet
+
 def resnet20(num_classes=10, **kargs):
     """ return a ResNet 20 object
     """
