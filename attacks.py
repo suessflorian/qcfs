@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     # conversion
     if args.mode == 'snn':
-        model = convert_snn(model)
+        model = convert_snn(model, args.t)
 
     model.to(args.device)
     reset_net(model)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     for images, labels in tqdm(test_loader, desc='Attack Batches', unit="Batch"):
         images, labels = images.to(args.device), labels.to(args.device)
 
-        fmodel = fb.PyTorchModel(model, bounds=(-3, 3), device=args.device) # TODO: should just train on 0-1s
+        fmodel = fb.PyTorchModel(model, bounds=(-3, 3), device=args.device) # TODO: restrict to 0-1 range.
         raw_attack, perturbed_image, _ = selected_attack(fmodel, images, labels, epsilons=args.epsilon)
         with torch.no_grad():
             reset_net(model)

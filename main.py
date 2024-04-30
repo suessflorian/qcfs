@@ -43,7 +43,7 @@ if __name__ == "__main__":
         train_ann(train, test, model, args.epochs, args.device, criterion, args.lr, args.wd, args.id)
     elif args.action == 'test':
         if args.mode == 'snn':
-            acc = eval_snn(test, model, args.device, args.t)
+            acc = eval_snn(test, model, args.device)
             print('Accuracy: ', acc)
         elif args.mode == 'ann':
             acc, _ = eval_ann(test, model, criterion, args.device)

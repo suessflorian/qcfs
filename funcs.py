@@ -30,7 +30,7 @@ def eval_ann(test_dataloader, model, loss_fn, device):
             tot += (label==out.max(1)[1]).sum().data
     return tot/length, epoch_loss/length
 
-def eval_snn(test_dataloader, model, device, sim_len=8):
+def eval_snn(test_dataloader, model, device):
     quantity_evaluated = 0
     total_correct = 0
 
@@ -40,11 +40,7 @@ def eval_snn(test_dataloader, model, device, sim_len=8):
             reset_net(model)
             img, label = img.to(device), label.to(device)
 
-
-            spikes = torch.zeros((label.size(0), 10), device=device) # WARNING: assumes 10 classes
-            for _ in range(sim_len):
-                spikes = model(img)
-
+            spikes = model(img)
             _, predicted = spikes.max(1)
             total_correct += (predicted == label).sum().item()
             quantity_evaluated += len(label)

@@ -30,7 +30,7 @@ def primed(model, t):
     return model
 
 
-def convert_snn(model):
+def convert_snn(model, steps=16):
     def replace_activation_by_scaled_lif(model):
         for name, module in model._modules.items():
             if hasattr(module,"_modules"):
@@ -42,8 +42,22 @@ def convert_snn(model):
                     model._modules[name] = ScaledLIF(scale=1.)
         return model
 
+    class SpikingModel(torch.nn.Module):
+        def __init__(self, model, sim_len = 16):
+            super(SpikingModel, self).__init__()
+            self.model = model
+            self.sim_len = sim_len
+
+        def forward(self, x):
+            spikes = torch.zeros((x.size(0), 10), device=x.device)  # WARNING: assumes 10 classes, change as needed.
+
+            for _ in range(self.sim_len):
+                spikes = self.model(x) # NOTE: the overriding here.
+
+            return spikes
+
     model = replace_activation_by_scaled_lif(model)
-    return model
+    return SpikingModel(model, steps)
 
 def isActivation(name):
     if 'relu' in name.lower() or 'clip' in name.lower() or 'floor' in name.lower() or 'tcl' in name.lower():
